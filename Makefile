@@ -1,6 +1,9 @@
 containerup:
 	docker-compose up -d
 
+containerstop:
+	docker-compose stop
+
 createdb:
 	docker exec -it postgres createdb --username=taha --owner=taha simple_bank
 
@@ -19,4 +22,4 @@ sqlc:
 test:
 	go test -v -cover ./...
 
-.PHONY: sqlc containerup createdb dropdb migrateup migratedown test
+.PHONY: sqlc containerup createdb dropdb migrateup migratedown test containerstop
