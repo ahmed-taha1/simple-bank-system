@@ -1,0 +1,21 @@
+version: "3.8"
+services:
+  postgres:
+    image:  postgres:16-alpine
+    container_name: postgres
+    environment:
+      POSTGRES_USER: taha
+      POSTGRES_PASSWORD: root
+    ports:
+      - "5431:5432"
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ahmedtaha011202@gmail.com
+      PGADMIN_DEFAULT_PASSWORD: root
+    ports:
+      - "8080:80"
+    depends_on:
+      - postgres
