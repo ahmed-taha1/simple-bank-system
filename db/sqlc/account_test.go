@@ -3,7 +3,7 @@ package db
 import (
 	"context"
 	"database/sql"
-	db "simplebank/db/sqlc"
+
 	"simplebank/util"
 	"testing"
 	"time"
@@ -11,8 +11,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func CreateRandomAccount(t *testing.T) db.Account {
-	arg := db.CreateAccountParams{
+func createRandomAccount(t *testing.T) Account {
+	arg := CreateAccountParams{
 		Owner:    util.RandomOwner(),
 		Balance:  util.RandomMoeny(),
 		Currency: util.RandomCurrency(),
@@ -33,7 +33,7 @@ func CreateRandomAccount(t *testing.T) db.Account {
 }
 
 func TestCreateAccount(t *testing.T) {
-	/*account := */ CreateRandomAccount(t)
+	/*account := */ createRandomAccount(t)
 
 	// clean up
 	// err := testQueries.DeleteAccount(context.Background(), account.ID)
@@ -41,7 +41,7 @@ func TestCreateAccount(t *testing.T) {
 }
 
 func TestGetAccount(t *testing.T) {
-	account1 := CreateRandomAccount(t)
+	account1 := createRandomAccount(t)
 	account2, err := testQueries.GetAccountById(context.Background(), account1.ID)
 	require.NoError(t, err)
 	require.NotEmpty(t, account2)
@@ -55,9 +55,9 @@ func TestGetAccount(t *testing.T) {
 }
 
 func TestUpdateAccount(t *testing.T) {
-	account1 := CreateRandomAccount(t)
+	account1 := createRandomAccount(t)
 
-	arg := db.UpdateAccountBalanceParams{
+	arg := UpdateAccountBalanceParams{
 		ID:      account1.ID,
 		Balance: util.RandomMoeny(),
 	}
@@ -74,7 +74,7 @@ func TestUpdateAccount(t *testing.T) {
 }
 
 func TestDeleteAccount(t *testing.T) {
-	account1 := CreateRandomAccount(t)
+	account1 := createRandomAccount(t)
 
 	err := testQueries.DeleteAccount(context.Background(), account1.ID)
 	require.NoError(t, err)
@@ -88,10 +88,10 @@ func TestDeleteAccount(t *testing.T) {
 func TestListAccounts(t *testing.T) {
 	// Create 10 random accounts
 	for i := 0; i < 10; i++ {
-		CreateRandomAccount(t)
+		createRandomAccount(t)
 	}
 
-	arg := db.ListAccountsParams{
+	arg := ListAccountsParams{
 		Limit:  5,
 		Offset: 5,
 	}

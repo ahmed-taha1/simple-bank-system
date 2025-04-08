@@ -2,7 +2,7 @@ package db
 
 import (
 	"context"
-	db "simplebank/db/sqlc"
+
 	"simplebank/util"
 	"testing"
 	"time"
@@ -10,8 +10,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func createRandomTransfer(t *testing.T, fromAccount db.Account, toAccount db.Account) db.Transfer {
-	arg := db.CreateTransferParams{
+func createRandomTransfer(t *testing.T, fromAccount Account, toAccount Account) Transfer {
+	arg := CreateTransferParams{
 		FromAccountID: fromAccount.ID,
 		ToAccountID:   toAccount.ID,
 		Amount:        util.RandomMoeny(),
@@ -32,14 +32,14 @@ func createRandomTransfer(t *testing.T, fromAccount db.Account, toAccount db.Acc
 }
 
 func TestCreateTransfer(t *testing.T) {
-	account1 := CreateRandomAccount(t)
-	account2 := CreateRandomAccount(t)
+	account1 := createRandomAccount(t)
+	account2 := createRandomAccount(t)
 	createRandomTransfer(t, account1, account2)
 }
 
 func TestGetTransfer(t *testing.T) {
-	account1 := CreateRandomAccount(t)
-	account2 := CreateRandomAccount(t)
+	account1 := createRandomAccount(t)
+	account2 := createRandomAccount(t)
 	transfer1 := createRandomTransfer(t, account1, account2)
 	transfer2, err := testQueries.GetTransfer(context.Background(), transfer1.ID)
 	require.NoError(t, err)
@@ -54,15 +54,15 @@ func TestGetTransfer(t *testing.T) {
 }
 
 func TestGetTransfers(t *testing.T) {
-	account1 := CreateRandomAccount(t)
-	account2 := CreateRandomAccount(t)
+	account1 := createRandomAccount(t)
+	account2 := createRandomAccount(t)
 
 	for range 10 {
 		createRandomTransfer(t, account1, account2)
 		createRandomTransfer(t, account2, account1)
 	}
 
-	arg := db.GetTransfersParams{
+	arg := GetTransfersParams{
 		FromAccountID: account1.ID,
 		ToAccountID:   account2.ID,
 		Limit:         5,
