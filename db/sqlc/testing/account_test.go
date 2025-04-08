@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 	"database/sql"
+	db "simplebank/db/sqlc"
 	"simplebank/util"
 	"testing"
 	"time"
@@ -10,8 +11,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func CreateRandomAccount(t *testing.T) Account {
-	arg := CreateAccountParams{
+func CreateRandomAccount(t *testing.T) db.Account {
+	arg := db.CreateAccountParams{
 		Owner:    util.RandomOwner(),
 		Balance:  util.RandomMoeny(),
 		Currency: util.RandomCurrency(),
@@ -56,7 +57,7 @@ func TestGetAccount(t *testing.T) {
 func TestUpdateAccount(t *testing.T) {
 	account1 := CreateRandomAccount(t)
 
-	arg := UpdateAccountBalanceParams{
+	arg := db.UpdateAccountBalanceParams{
 		ID:      account1.ID,
 		Balance: util.RandomMoeny(),
 	}
@@ -90,7 +91,7 @@ func TestListAccounts(t *testing.T) {
 		CreateRandomAccount(t)
 	}
 
-	arg := ListAccountsParams{
+	arg := db.ListAccountsParams{
 		Limit:  5,
 		Offset: 5,
 	}
