@@ -11,8 +11,8 @@ import (
 func TestTransferTx(t *testing.T) {
 	store := NewStore(testDB)
 
-	account1 := createRandomAccount(t)
-	account2 := createRandomAccount(t)
+	senderAccount := createRandomAccount(t)
+	reciverAccount := createRandomAccount(t)
 
 	// run n concurrent transfer transactions
 	n := 5
@@ -21,11 +21,12 @@ func TestTransferTx(t *testing.T) {
 	errs := make(chan error)
 	results := make(chan TransferTxResult)
 
-	for range n {
+	for i := 0; i < n; i++ {
 		go func() {
-			result, err := store.TransferTx(context.Background(), TransferTxParams{
-				FromAccountID: account1.ID,
-				ToAccountID:   account2.ID,
+			ctx := context.Background()
+			result, err := store.TransferTx(ctx, TransferTxParams{
+				FromAccountID: senderAccount.ID,
+				ToAccountID:   reciverAccount.ID,
 				Amount:        amount,
 			})
 			errs <- err
@@ -34,6 +35,8 @@ func TestTransferTx(t *testing.T) {
 	}
 
 	// check results
+	isExisted := make(map[int]bool)
+
 	for range n {
 		err := <-errs
 		require.NoError(t, err)
@@ -44,8 +47,8 @@ func TestTransferTx(t *testing.T) {
 		// check transfer
 		transfer := result.Transfer
 		require.NotEmpty(t, transfer)
-		require.Equal(t, account1.ID, transfer.FromAccountID)
-		require.Equal(t, account2.ID, transfer.ToAccountID)
+		require.Equal(t, senderAccount.ID, transfer.FromAccountID)
+		require.Equal(t, reciverAccount.ID, transfer.ToAccountID)
 		require.Equal(t, amount, transfer.Amount)
 		require.NotZero(t, transfer.ID)
 
@@ -55,7 +58,7 @@ func TestTransferTx(t *testing.T) {
 		// check accounts
 		fromEntry := result.FromEntry
 		require.NotEmpty(t, fromEntry)
-		require.Equal(t, account1.ID, fromEntry.AccountID)
+		require.Equal(t, senderAccount.ID, fromEntry.AccountID)
 		require.Equal(t, -amount, fromEntry.Amount)
 		require.NotZero(t, fromEntry.ID)
 		require.NotZero(t, fromEntry.CreatedAt)
@@ -65,7 +68,7 @@ func TestTransferTx(t *testing.T) {
 
 		toEntry := result.ToEntry
 		require.NotEmpty(t, toEntry)
-		require.Equal(t, account2.ID, toEntry.AccountID)
+		require.Equal(t, reciverAccount.ID, toEntry.AccountID)
 		require.Equal(t, amount, toEntry.Amount)
 		require.NotZero(t, toEntry.ID)
 		require.NotZero(t, toEntry.CreatedAt)
@@ -73,6 +76,35 @@ func TestTransferTx(t *testing.T) {
 		_, err = store.GetEntry(context.Background(), toEntry.ID)
 		require.NoError(t, err)
 
-		// TODO check account balance
+		// check accounts
+		fromAccount := result.FromAccount
+		require.NotEmpty(t, fromAccount)
+		require.Equal(t, senderAccount.ID, fromAccount.ID)
+
+		toAccount := result.ToAccount
+		require.NotEmpty(t, toAccount)
+		require.Equal(t, reciverAccount.ID, toAccount.ID)
+
+		// check accounts' balance
+		outMoneyFromAccount1 := senderAccount.Balance - fromAccount.Balance
+		inMoneyToAccount2 := toAccount.Balance - reciverAccount.Balance
+		require.Equal(t, outMoneyFromAccount1, inMoneyToAccount2)
+		require.True(t, outMoneyFromAccount1 > 0)
+		require.True(t, outMoneyFromAccount1%amount == 0)
+
+		k := int(outMoneyFromAccount1 / amount)
+		require.True(t, k >= 1 && k <= n)
+		require.NotContains(t, isExisted, k)
+		isExisted[k] = true
 	}
+
+	// check the final updated balances
+	senderUpdatedAccount, err := testQueries.GetAccountById(context.Background(), senderAccount.ID)
+	require.NoError(t, err)
+
+	receiverUpdatedAccount, err := testQueries.GetAccountById(context.Background(), reciverAccount.ID)
+	require.NoError(t, err)
+
+	require.Equal(t, senderAccount.Balance-int64(n)*amount, senderUpdatedAccount.Balance)
+	require.Equal(t, reciverAccount.Balance+int64(n)*amount, receiverUpdatedAccount.Balance)
 }

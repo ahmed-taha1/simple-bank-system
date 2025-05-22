@@ -85,7 +85,23 @@ func (store *Store) TransferTx(ctx context.Context, arg TransferTxParams) (Trans
 			return err
 		}
 
-		// TODO update accounts' balance (possiable deadlock)
+
+		result.FromAccount, err = q.AddBalanceToAccountById(ctx,AddBalanceToAccountByIdParams{
+				ID: arg.FromAccountID,
+				Amount: -arg.Amount,
+			})
+		if err != nil {
+			return nil
+		}
+		
+		result.ToAccount, err = q.AddBalanceToAccountById(ctx,AddBalanceToAccountByIdParams{
+				ID: arg.ToAccountID,
+				Amount: arg.Amount,
+			})
+		if err != nil {
+			return nil
+		}
+		
 		return nil
 	})
 
