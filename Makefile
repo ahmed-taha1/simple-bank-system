@@ -22,4 +22,7 @@ sqlc:
 test:
 	go test -v -cover ./...
 
-.PHONY: sqlc containerup createdb dropdb migrateup migratedown test containerstop
+server:
+	go run main.go
+
+.PHONY: sqlc containerup createdb dropdb migrateup migratedown test containerstop server
