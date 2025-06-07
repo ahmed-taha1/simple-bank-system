@@ -24,5 +24,7 @@ test:
 
 server:
 	go run main.go
+mock:
+	mockgen -package mockdb -destination db/mock/store.go simplebank/db/sqlc Store
 
-.PHONY: sqlc containerup createdb dropdb migrateup migratedown test containerstop server
+.PHONY: sqlc containerup createdb dropdb migrateup migratedown test containerstop server mock
